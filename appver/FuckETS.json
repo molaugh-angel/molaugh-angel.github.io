@@ -1,4 +1,5 @@
 {
   "last-version" : "2.1",
-  "update-log" : "1.优化分组算法,2.修复已知问题，3.UI更新"
+  "update-log" : "1.优化分组算法,2.修复已知问题，3.UI更新",
+  "download-url" : "https://github.com/molaugh-angel/FuckEts/releases"
 }

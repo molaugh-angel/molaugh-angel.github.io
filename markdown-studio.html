@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d18"><meta name="description" content="莫笑の科技小屋 Markdown 文章编辑器">
+<title>Markdown 工作台 · 莫笑の科技小屋</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+<style>
+.studio-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 0}
+.studio-btn,.studio-select,.studio-input,.studio-textarea{background:#0b1423;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
+.studio-btn{cursor:pointer;color:var(--cyan);border-color:#397b83}.studio-btn.primary{background:#12343b}.studio-btn:hover{border-color:var(--cyan)}
+.studio-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.studio-field{display:flex;flex-direction:column;gap:6px}.studio-field label{font-size:12px;color:var(--muted)}
+.studio-field.full{grid-column:1/-1}.studio-input{width:100%}
+.studio-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.studio-pane{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0b1423;min-width:0}
+.studio-pane-head{padding:12px 16px;border-bottom:1px solid var(--line);color:var(--cyan);font-size:13px;display:flex;justify-content:space-between}
+.studio-textarea{display:block;width:100%;height:560px;resize:vertical;border:0;border-radius:0;line-height:1.7;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px}
+.studio-preview{height:560px;overflow:auto;padding:22px}
+.article-preview{color:#dce7f7;line-height:1.9;overflow-wrap:anywhere}
+.article-preview h1,.article-preview h2,.article-preview h3{line-height:1.35;color:#f3f7ff;margin:1.5em 0 .65em}
+.article-preview h1{font-size:2em;border-bottom:1px solid var(--line);padding-bottom:.5em}
+.article-preview h2{font-size:1.5em;border-left:3px solid var(--cyan);padding-left:12px}
+.article-preview a{color:var(--cyan);text-decoration:underline}.article-preview blockquote{margin:1em 0;padding:8px 16px;border-left:3px solid var(--blue);background:#111e30;color:#aebed4}
+.article-preview pre{overflow:auto;padding:16px;border:1px solid var(--line);border-radius:8px;background:#060b13}.article-preview code{font-family:ui-monospace,monospace;background:#18253a;padding:2px 5px;border-radius:4px}.article-preview pre code{background:none;padding:0}
+.article-preview table{border-collapse:collapse;width:100%;display:block;overflow:auto}.article-preview th,.article-preview td{border:1px solid var(--line);padding:8px 12px;text-align:left}.article-preview th{background:#17263a}
+.article-preview img{max-width:100%;border-radius:10px}.article-preview hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.studio-help{color:var(--muted);font-size:13px;margin:10px 0 26px}.studio-status{color:var(--muted);font-size:12px}
+@media(max-width:760px){.studio-layout{grid-template-columns:1fr}.studio-textarea,.studio-preview{height:430px}.studio-meta{grid-template-columns:1fr}.studio-field.full{grid-column:auto}}
+</style></head>
+<body>
+<header class="site-header"><a class="brand" href="/">莫笑<span>の</span>科技小屋</a><nav><a href="/">首页</a><a href="/reviews.html">数码评测</a><a href="/archive.html">文章归档</a><a href="/about.html">关于</a><a class="active" href="/markdown-studio.html">写作工具</a></nav></header>
+<main class="container">
+<section class="page-hero"><p class="eyebrow">MARKDOWN STUDIO</p><h1>Markdown 写作工作台</h1><p>导入文章、实时预览、整理文章信息，再导出适合小屋风格的 Markdown 或 HTML。</p></section>
+<section class="content-panel">
+<div class="studio-toolbar">
+<label class="studio-btn" for="md-file">导入 .md 文件</label><input id="md-file" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden>
+<button class="studio-btn" id="sample">载入示例</button>
+<button class="studio-btn" id="download-md">导出 Markdown</button>
+<button class="studio-btn primary" id="download-html">导出美化 HTML</button>
+<select class="studio-select" id="theme" aria-label="预览样式"><option value="tech">暗色科技风</option><option value="paper">简洁阅读风</option></select>
+<span class="studio-status" id="status">内容仅在当前浏览器处理，不会自动上传到服务器。</span>
+</div>
+<div class="studio-meta">
+<div class="studio-field"><label for="title">文章标题</label><input class="studio-input" id="title" placeholder="输入文章标题"></div>
+<div class="studio-field"><label for="category">文章分类</label><input class="studio-input" id="category" placeholder="例如：数码评测"></div>
+<div class="studio-field"><label for="date">发布日期</label><input class="studio-input" id="date" type="date"></div>
+<div class="studio-field"><label for="slug">文章标识（slug）</label><input class="studio-input" id="slug" placeholder="例如：my-first-review"></div>
+<div class="studio-field full"><label for="summary">文章摘要</label><input class="studio-input" id="summary" placeholder="用一两句话介绍文章内容"></div>
+</div>
+<div class="studio-layout">
+<section class="studio-pane"><div class="studio-pane-head"><span>Markdown 编辑区</span><span id="word-count">0 字</span></div><textarea id="source" class="studio-textarea" spellcheck="false" placeholder="# 写下你的文章&#10;&#10;支持标题、列表、引用、代码块、表格、图片等 Markdown 语法。"></textarea></section>
+<section class="studio-pane"><div class="studio-pane-head"><span>实时预览</span><span>LIVE PREVIEW</span></div><article id="preview" class="studio-preview article-preview"></article></section>
+</div>
+<p class="studio-help">提示：导出 Markdown 会在文件开头加入文章元信息（YAML Front Matter）。导出的 HTML 已内置样式，可单独保存或复制到其他平台。此工具不会直接发布文章，也不会上传你的文件。</p>
+</section>
+</main>
+<footer class="site-footer"><span>© <span id="year"></span> 莫笑の科技小屋</span><span><a href="/rss.xml">RSS 订阅</a></span></footer>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const source=$('source'),preview=$('preview');
+const sample='# 我的第一篇科技文章\n\n> 用好奇心驱动每一次探索。\n\n## 一、开箱与设计\n\n这是一段正文。你可以导入自己的 **Markdown** 文件，在这里实时查看排版效果。\n\n- 做工与质感\n- 屏幕与显示\n- 性能与续航\n\n## 二、体验总结\n\n| 项目 | 体验 |\n| --- | --- |\n| 屏幕 | 清晰细腻 |\n| 续航 | 满足日常 |\n\n\x60\x60\x60js\nconsole.log("Hello, tech world!");\n\x60\x60\x60\n';
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const cssTech='body{margin:0;background:#080d18;color:#e8f0ff;font:16px/1.9 Inter,"PingFang SC",sans-serif}main{max-width:820px;margin:40px auto;padding:36px;background:#101a2b;border:1px solid #1d2b42;border-radius:16px}h1,h2,h3{color:#f3f7ff;line-height:1.4}h1{border-bottom:1px solid #1d2b42;padding-bottom:16px}h2{border-left:3px solid #55e6df;padding-left:12px}a{color:#55e6df}blockquote{border-left:3px solid #7aa7ff;background:#111e30;padding:8px 16px;color:#aebed4}pre{background:#060b13;border:1px solid #1d2b42;padding:16px;border-radius:8px;overflow:auto}code{background:#18253a;padding:2px 5px;border-radius:4px}pre code{background:none}table{border-collapse:collapse;width:100%}th,td{border:1px solid #1d2b42;padding:8px 12px}th{background:#17263a}img{max-width:100%;border-radius:10px}hr{border:0;border-top:1px solid #1d2b42}';
+const cssPaper='body{margin:0;background:#f5f7fa;color:#263244;font:17px/1.9 Georgia,"Noto Serif SC",serif}main{max-width:820px;margin:40px auto;padding:36px;background:#fff;border:1px solid #e5e9f0;border-radius:12px}h1,h2,h3{color:#17243a;line-height:1.4}h1{border-bottom:1px solid #e5e9f0;padding-bottom:16px}h2{border-left:3px solid #287d8b;padding-left:12px}a{color:#176f83}blockquote{border-left:3px solid #8ba6bd;background:#f3f6f9;padding:8px 16px;color:#536579}pre{background:#172334;color:#eef3fa;padding:16px;border-radius:8px;overflow:auto}code{background:#edf1f5;padding:2px 5px;border-radius:4px}pre code{background:none}table{border-collapse:collapse;width:100%}th,td{border:1px solid #dce3eb;padding:8px 12px}th{background:#edf2f7}img{max-width:100%;border-radius:10px}hr{border:0;border-top:1px solid #e5e9f0}';
+function rendered(){const raw=window.marked?marked.parse(source.value||''):('<pre>'+esc(source.value)+'</pre>');preview.innerHTML=window.DOMPurify?DOMPurify.sanitize(raw):raw;$('word-count').textContent=(source.value.replace(/\s/g,'').length)+' 字';}
+function slugify(s){return s.trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g,'-').replace(/^-|-$/g,'')||'new-post'}
+function metadata(){return {title:$('title').value.trim(),date:$('date').value,category:$('category').value.trim(),slug:$('slug').value.trim(),summary:$('summary').value.trim()}}
+function frontmatter(m){return '---\ntitle: "'+m.title.replace(/"/g,'\\"')+'"\ndate: "'+m.date+'"\ncategory: "'+m.category.replace(/"/g,'\\"')+'"\nslug: "'+m.slug+'"\nsummary: "'+m.summary.replace(/"/g,'\\"')+'"\n---\n\n'}
+function save(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+source.addEventListener('input',rendered);
+$('theme').addEventListener('change',()=>{const paper=$('theme').value==='paper';preview.style.background=paper?'#fff':'#0b1423';preview.style.color=paper?'#263244':'#dce7f7';});
+$('md-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;source.value=await file.text();const first=source.value.match(/^---\s*\n([\s\S]*?)\n---\s*\n?/);if(first){const fm=first[1];for(const key of ['title','date','category','slug','summary']){const re=new RegExp('^'+key+':\\s*["\\']?(.*?)["\\']?\\s*$','m');const v=fm.match(re);if(v&&$(key))$(key).value=v[1];}source.value=source.value.slice(first[0].length);}$('status').textContent='已导入：'+file.name;rendered();});
+$('sample').addEventListener('click',()=>{source.value=sample;$('title').value='我的第一篇科技文章';$('category').value='科技笔记';$('date').value=new Date().toISOString().slice(0,10);$('slug').value='my-first-tech-note';$('summary').value='记录一次科技产品体验与使用心得。';rendered();});
+$('download-md').addEventListener('click',()=>{const m=metadata();if(!m.title){$('title').focus();$('status').textContent='请先填写文章标题';return;}save(slugify(m.slug||m.title)+'.md',frontmatter(m)+source.value,'text/markdown;charset=utf-8');$('status').textContent='Markdown 文件已生成，可下载后放入博客文章目录。';});
+$('download-html').addEventListener('click',()=>{const m=metadata(),css=$('theme').value==='paper'?cssPaper:cssTech;const body=window.marked?marked.parse(source.value||''):('<pre>'+esc(source.value)+'</pre>');const safe=window.DOMPurify?DOMPurify.sanitize(body):body;const doc='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(m.title||'文章预览')+'</title><style>'+css+'</style><main><h1>'+esc(m.title||'未命名文章')+'</h1><p>'+esc([m.date,m.category].filter(Boolean).join(' · '))+'</p>'+safe+'</main></html>';save(slugify(m.slug||m.title||'article')+'.html',doc,'text/html;charset=utf-8');$('status').textContent='美化 HTML 文件已生成。';});
+$('year').textContent=new Date().getFullYear();rendered();
+})();
+</script></body></html>
